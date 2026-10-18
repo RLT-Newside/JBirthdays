@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">JBirthdays</string>
+    <string name="title_activity_main">JBirthdays</string>
+    <string name="package_name">com.rltnewside.jbirthdays</string>
+    <string name="custom_url_scheme">com.rltnewside.jbirthdays</string>
+</resources>
