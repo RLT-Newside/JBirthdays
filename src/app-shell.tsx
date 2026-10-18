@@ -30,13 +30,16 @@ export function AppShell() {
     setTimeout(() => setToast(undefined), 3000)
   }, [])
 
-  useLinkImport(setPendingImport, () => flash('That share link is broken or incomplete'))
+  useLinkImport(
+    (packet) => setPendingImport({ packet }),
+    () => flash('That share link is broken or incomplete'),
+  )
 
   // Shared to the app on Android: a .jbday.json file, a share link as text, or a full backup.
   const onShared = useCallback(
     async (text: string) => {
       const src = await parseImportText(text)
-      if (src?.kind === 'packet') setPendingImport(src.packet)
+      if (src?.kind === 'packet') setPendingImport(src)
       else if (src?.kind === 'backup') setPendingBackup(src.backup)
       else flash("That file isn't a JBirthdays share")
     },
@@ -66,7 +69,7 @@ export function AppShell() {
       <PersonDetailModal />
       <PersonFormModal />
       <ImportDialog
-        packet={pendingImport}
+        pending={pendingImport}
         onClose={() => setPendingImport(null)}
         onImported={(n) => {
           setPendingImport(null)

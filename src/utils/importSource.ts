@@ -1,8 +1,17 @@
 // Copyright (C) 2024-2026 Justin Marty (RLT-Newside). Licensed under GPL-3.0.
 import { type Backup, isBackup } from './backup'
+import { detectExternal, type ExternalFormat, parseExternal, toPacket } from './external'
+import type { SkippedEntry } from './external/types'
 import { decodePacket, parsePacket, readShareHash, type SharePacket } from './share'
 
-export type ImportSource = { kind: 'packet'; packet: SharePacket } | { kind: 'backup'; backup: Backup }
+/** A packet waiting for the user's confirmation; `origin` is set for other apps' exports. */
+export interface PendingImport {
+  packet: SharePacket
+  origin?: ExternalFormat
+  skipped?: SkippedEntry[]
+}
+
+export type ImportSource = ({ kind: 'packet' } & PendingImport) | { kind: 'backup'; backup: Backup }
 
 /** Sort a parsed JSON object (file or Android intent) into a share packet or a full backup. */
 export function classifyImport(raw: unknown): ImportSource | null {
@@ -11,7 +20,10 @@ export function classifyImport(raw: unknown): ImportSource | null {
   return packet ? { kind: 'packet', packet } : null
 }
 
-/** Accept whatever a user pastes: a full share link, just its `#import=…` hash, or raw JSON. */
+/**
+ * Accept whatever a user pastes or opens: a full share link, just its `#import=…` hash,
+ * raw JSON, or another app's calendar / contacts / spreadsheet export.
+ */
 export async function parseImportText(text: string): Promise<ImportSource | null> {
   const t = text.trim()
   if (!t) return null
@@ -21,6 +33,12 @@ export async function parseImportText(text: string): Promise<ImportSource | null
     } catch {
       return null
     }
+  }
+  const format = detectExternal(t)
+  if (format) {
+    const { entries, skipped } = parseExternal(t, format)
+    if (entries.length === 0 && skipped.length === 0) return null
+    return { kind: 'packet', packet: toPacket(entries), origin: format, skipped }
   }
   const hashAt = t.indexOf('#')
   const encoded = hashAt >= 0 ? readShareHash(t.slice(hashAt)) : t

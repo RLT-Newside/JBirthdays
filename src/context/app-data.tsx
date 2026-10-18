@@ -7,6 +7,7 @@ import { useStorage } from '../hooks/useStorage'
 import type { GiftIdea, Person, PersonDraft, Settings, Tab, Tag, Template } from '../types'
 import type { Backup } from '../utils/backup'
 import { applyImport } from '../utils/importMerge'
+import type { PendingImport } from '../utils/importSource'
 import {
   buildSchedule,
   getNotificationStatus,
@@ -52,8 +53,8 @@ interface AppData {
 
   importPacket: (packet: SharePacket) => void
   /** Packet awaiting the user's confirmation in the import dialog. */
-  pendingImport: SharePacket | null
-  setPendingImport: (packet: SharePacket | null) => void
+  pendingImport: PendingImport | null
+  setPendingImport: (pending: PendingImport | null) => void
   /** Full backup awaiting merge/replace confirmation. */
   pendingBackup: Backup | null
   setPendingBackup: (backup: Backup | null) => void
@@ -81,7 +82,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [viewingId, setViewingId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | 'new' | null>(null)
   const [notificationStatus, setNotificationStatus] = useState<NotificationStatus>('unsupported')
-  const [pendingImport, setPendingImport] = useState<SharePacket | null>(null)
+  const [pendingImport, setPendingImport] = useState<PendingImport | null>(null)
   const [pendingBackup, setPendingBackup] = useState<Backup | null>(null)
 
   // Fill fields added in later versions from defaults.

@@ -152,7 +152,10 @@ export function ShareView(props: Props) {
       <GlassCard className="space-y-3">
         <div>
           <h3 className="font-medium">Receive</h3>
-          <p className="text-xs text-white/45 mt-0.5">Opening a share link imports automatically. Or paste it here.</p>
+          <p className="text-xs text-white/45 mt-0.5">
+            Opening a share link imports automatically. Or paste it here, or open a file: a .jbday.json share, or a
+            calendar, contacts or spreadsheet export from another app.
+          </p>
         </div>
         <div className="flex gap-2">
           <input
@@ -172,12 +175,12 @@ export function ShareView(props: Props) {
           onClick={() => fileRef.current?.click()}
           className="w-full flex items-center justify-center gap-2 border border-dashed border-white/[0.12]"
         >
-          <FileUp size={16} /> Open .jbday.json file
+          <FileUp size={16} /> Open file
         </Button>
         <input
           ref={fileRef}
           type="file"
-          accept=".json,application/json"
+          accept=".json,.jbday.json,.ics,.vcf,.csv,application/json,text/calendar,text/vcard,text/x-vcard,text/csv"
           className="hidden"
           onChange={(e) => {
             const f = e.target.files?.[0]

@@ -57,4 +57,25 @@ describe('App', () => {
     expect(await screen.findByText('Max')).toBeInTheDocument()
     expect(JSON.parse(localStorage.getItem('bday_tags')!)[0].name).toBe('Squad')
   })
+
+  it('imports birthdays from a calendar file on the Share tab', async () => {
+    const user = userEvent.setup()
+    const { container } = render(<App />)
+    await user.click(screen.getByRole('button', { name: 'Share' }))
+    const ics = [
+      'BEGIN:VCALENDAR',
+      'BEGIN:VEVENT',
+      "SUMMARY:Lena's birthday",
+      'DTSTART;VALUE=DATE:19981024',
+      'RRULE:FREQ=YEARLY',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n')
+    const input = container.querySelector<HTMLInputElement>('input[type=file]')!
+    await user.upload(input, new File([ics], 'b.ics', { type: 'text/calendar' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Import birthdays' })
+    expect(within(dialog).getByText('Found 1 birthday in this calendar file.')).toBeInTheDocument()
+    await user.click(within(dialog).getByRole('button', { name: 'Import 1' }))
+    expect(await screen.findByText('Lena')).toBeInTheDocument()
+  })
 })

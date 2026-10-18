@@ -61,7 +61,7 @@ export function ShareContainer() {
 
   const route = (src: ImportSource | null) => {
     if (!src) return flash("That doesn't look like a JBirthdays link or file", true)
-    if (src.kind === 'packet') setPendingImport(src.packet)
+    if (src.kind === 'packet') setPendingImport(src)
     else setPendingBackup(src.backup)
     setPasted('')
   }

@@ -20,6 +20,25 @@ describe('parseImportText', () => {
     expect(r?.kind).toBe('backup')
   })
 
+  it("reads other apps' exports as packets with their origin and skipped rows", async () => {
+    const vcf = [
+      'BEGIN:VCARD',
+      'FN:Lena',
+      'BDAY:1998-10-24',
+      'END:VCARD',
+      'BEGIN:VCARD',
+      'FN:Bad',
+      'BDAY:x',
+      'END:VCARD',
+    ].join('\r\n')
+    const r = await parseImportText(vcf)
+    expect(r?.kind).toBe('packet')
+    if (r?.kind !== 'packet') return
+    expect(r.origin).toBe('contacts')
+    expect(r.packet.people.map((p) => p.name)).toEqual(['Lena'])
+    expect(r.skipped).toEqual([{ label: 'Bad', reason: 'Unreadable date' }])
+  })
+
   it('rejects junk', async () => {
     expect(await parseImportText('')).toBeNull()
     expect(await parseImportText('hello world')).toBeNull()

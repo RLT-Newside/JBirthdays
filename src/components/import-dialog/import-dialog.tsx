@@ -3,17 +3,21 @@ import { useMemo } from 'react'
 import { useAppData } from '../../context/app-data'
 import { formatBirthday } from '../../utils/birthday'
 import { planImport } from '../../utils/importMerge'
-import type { SharePacket } from '../../utils/share'
+import type { PendingImport } from '../../utils/importSource'
 import { Button } from '../button/button'
 import { Modal } from '../modal/modal'
 
+const ORIGIN_LABEL = { calendar: 'calendar file', contacts: 'contacts file', spreadsheet: 'spreadsheet' } as const
+
 interface Props {
-  packet: SharePacket | null
+  pending: PendingImport | null
   onClose: () => void
   onImported: (count: number) => void
 }
 
-export function ImportDialog({ packet, onClose, onImported }: Props) {
+export function ImportDialog({ pending, onClose, onImported }: Props) {
+  const packet = pending?.packet ?? null
+  const skipped = pending?.skipped ?? []
   const { people, tags, gifts, importPacket } = useAppData()
   const plan = useMemo(
     () => (packet ? planImport(packet, { people, tags, gifts }) : null),
@@ -28,7 +32,12 @@ export function ImportDialog({ packet, onClose, onImported }: Props) {
     <Modal open onClose={onClose} title="Import birthdays">
       <div className="space-y-4">
         <p className="text-sm text-white/60">
-          {packet.from ? (
+          {pending?.origin ? (
+            <>
+              Found {packet.people.length} {packet.people.length === 1 ? 'birthday' : 'birthdays'} in this{' '}
+              {ORIGIN_LABEL[pending.origin]}.
+            </>
+          ) : packet.from ? (
             <>
               <span className="text-brand font-medium">{packet.from}</span> shared {packet.people.length}{' '}
               {packet.people.length === 1 ? 'birthday' : 'birthdays'} with you.
@@ -60,6 +69,19 @@ export function ImportDialog({ packet, onClose, onImported }: Props) {
               </li>
             ))}
           </ul>
+        )}
+
+        {skipped.length > 0 && (
+          <details className="text-xs text-white/50">
+            <summary className="cursor-pointer">{skipped.length} skipped</summary>
+            <ul className="mt-1 max-h-32 overflow-y-auto space-y-0.5 pl-3">
+              {skipped.map((s, i) => (
+                <li key={`${s.label}-${i}`}>
+                  {s.label} — {s.reason}
+                </li>
+              ))}
+            </ul>
+          </details>
         )}
 
         <ul className="text-xs text-white/45 space-y-0.5">

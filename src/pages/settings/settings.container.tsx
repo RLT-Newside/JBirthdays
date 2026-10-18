@@ -24,7 +24,7 @@ export function SettingsContainer() {
     try {
       const src = await parseImportText(await readFileText(file))
       if (src?.kind === 'backup') setPendingBackup(src.backup)
-      else if (src?.kind === 'packet') setPendingImport(src.packet)
+      else if (src?.kind === 'packet') setPendingImport(src)
       else setBackupError('Not a JBirthdays backup file')
     } catch {
       setBackupError('Could not read file')
