@@ -13,6 +13,16 @@ describe('backup', () => {
     expect(Object.keys(b.data).sort()).toEqual(['bday_people', 'bday_settings'])
   })
 
+  it('skips device-only update cache keys both ways', () => {
+    localStorage.setItem('bday_update_last_check', '123')
+    expect(createBackup().data).not.toHaveProperty('bday_update_last_check')
+    applyBackup(
+      { app: 'jbirthdays-backup', schemaVersion: 1, exportedAt: '', data: { bday_update_cached: { version: 'v9' } } },
+      'replace',
+    )
+    expect(localStorage.getItem('bday_update_cached')).toBeNull()
+  })
+
   it('merge appends unseen ids and keeps current settings', () => {
     applyBackup(
       {

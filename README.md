@@ -41,4 +41,4 @@ bash scripts/setup-signing.sh RLT-Newside/JBirthdays
 
 This creates `~/.jbirthdays-release.keystore` and stores it plus its password as repo secrets. Back up the keystore — a new key means phones must uninstall (losing data) before installing updates.
 
-On the phone: open the latest Release → download the `.apk` → allow "install unknown apps" for your browser once.
+On the phone: open the latest Release → download the `.apk` → allow "install unknown apps" for your browser once. After that the app checks GitHub once a day and offers in-app updates (download → SHA-256 check → Android installer); Settings has a manual "Check for updates".

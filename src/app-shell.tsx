@@ -5,7 +5,9 @@ import { ErrorBoundary } from './components/error-boundary/error-boundary'
 import { ImportDialog } from './components/import-dialog/import-dialog'
 import { PersonDetailModal } from './components/person-detail-modal/person-detail-modal'
 import { PersonFormModal } from './components/person-form-modal/person-form-modal'
+import { UpdateBanner } from './components/update-banner/update-banner'
 import { useAppData } from './context/app-data'
+import { useAppUpdate } from './context/update'
 import { useBackButton } from './hooks/useBackButton'
 import { useKeyboardVisible } from './hooks/useKeyboardVisible'
 import { useLinkImport } from './hooks/useLinkImport'
@@ -18,6 +20,7 @@ import { parseImportText } from './utils/importSource'
 
 export function AppShell() {
   const { tab, setTab, pendingImport, setPendingImport, pendingBackup, setPendingBackup } = useAppData()
+  const { update, dialogOpen, setDialogOpen } = useAppUpdate()
   const keyboardVisible = useKeyboardVisible()
   const [toast, setToast] = useState<string>()
   useTheme()
@@ -72,6 +75,7 @@ export function AppShell() {
         }}
       />
       <BackupImportDialog backup={pendingBackup} onClose={() => setPendingBackup(null)} />
+      {update && <UpdateBanner update={update} open={dialogOpen} onClose={() => setDialogOpen(false)} />}
 
       {toast && (
         <div

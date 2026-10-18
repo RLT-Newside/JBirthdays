@@ -4,6 +4,7 @@ import { useRef } from 'react'
 import { Button } from '../../components/button/button'
 import { GlassCard } from '../../components/glass-card/glass-card'
 import { THEMES, type Theme } from '../../hooks/useTheme'
+import { AppVersion } from './components/app-version/app-version'
 import { ReminderSettings } from './components/reminder-settings/reminder-settings'
 import { TagManager } from './components/tag-manager/tag-manager'
 import { TemplateManager } from './components/template-manager/template-manager'
@@ -84,10 +85,9 @@ export function SettingsView({ theme, onTheme, onExportBackup, onImportBackup, b
           No accounts, no servers, no tracking. Birthdays leave your device only when you share a link or file yourself
           — share links carry the data inside the link itself.
         </p>
-        <p className="text-[11px] text-white/30">
-          JBirthdays v{typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : 'dev'}
-        </p>
       </GlassCard>
+
+      <AppVersion />
     </div>
   )
 }

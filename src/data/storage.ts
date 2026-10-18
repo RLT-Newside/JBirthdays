@@ -15,7 +15,13 @@ export const STORAGE_KEYS = {
   settings: 'bday_settings',
   // Preferences / UI.
   theme: 'bday_theme',
+  // Device-local update-check cache (excluded from backups).
+  updateLastCheck: 'bday_update_last_check',
+  updateCached: 'bday_update_cached',
 } as const
+
+/** Keys that describe this install, not the user's data — never backed up. */
+export const DEVICE_ONLY_KEYS: readonly string[] = [STORAGE_KEYS.updateLastCheck, STORAGE_KEYS.updateCached]
 
 export type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS]
 

@@ -1,5 +1,5 @@
 // Copyright (C) 2024-2026 Justin Marty (RLT-Newside). Licensed under GPL-3.0.
-import { BDAY_KEY_PREFIX, SCHEMA_VERSION } from '../data/storage'
+import { BDAY_KEY_PREFIX, DEVICE_ONLY_KEYS, SCHEMA_VERSION } from '../data/storage'
 
 export interface Backup {
   app: 'jbirthdays-backup'
@@ -12,7 +12,7 @@ export function createBackup(): Backup {
   const data: Record<string, unknown> = {}
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i)
-    if (!key?.startsWith(BDAY_KEY_PREFIX)) continue
+    if (!key?.startsWith(BDAY_KEY_PREFIX) || DEVICE_ONLY_KEYS.includes(key)) continue
     try {
       data[key] = JSON.parse(localStorage.getItem(key) ?? 'null')
     } catch {
@@ -58,7 +58,7 @@ export function applyBackup(backup: Backup, mode: 'merge' | 'replace'): void {
   }
 
   for (const [key, value] of Object.entries(backup.data)) {
-    if (!key.startsWith(BDAY_KEY_PREFIX)) continue
+    if (!key.startsWith(BDAY_KEY_PREFIX) || DEVICE_ONLY_KEYS.includes(key)) continue
     if (mode === 'merge') {
       if (ARRAY_KEYS.includes(key)) {
         const current = readArray(key)
