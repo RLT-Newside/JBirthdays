@@ -1,5 +1,5 @@
 // Copyright (C) 2024-2026 Justin Marty (RLT-Newside). Licensed under GPL-3.0.
-import { ListPlus, Search, Users } from 'lucide-react'
+import { Contact, ListPlus, Search, Users } from 'lucide-react'
 import { Fab } from '../../components/fab/fab'
 import { PersonRow } from '../../components/person-row/person-row'
 import { TagChip } from '../../components/tag-chip/tag-chip'
@@ -27,6 +27,8 @@ interface Props {
   onOpen: (id: string) => void
   onAdd: () => void
   onQuickAdd: () => void
+  /** Set only when phone contacts are available (Android). */
+  onFromContacts?: () => void
 }
 
 export function PeopleView({
@@ -42,6 +44,7 @@ export function PeopleView({
   onOpen,
   onAdd,
   onQuickAdd,
+  onFromContacts,
 }: Props) {
   const groups: { label: string; rows: PeopleRow[] }[] = []
   if (sort === 'calendar') {
@@ -68,6 +71,15 @@ export function PeopleView({
           >
             <ListPlus size={14} /> Quick add
           </button>
+          {onFromContacts && (
+            <button
+              type="button"
+              onClick={onFromContacts}
+              className="flex items-center gap-1 text-xs text-brand/80 hover:text-brand press-scale"
+            >
+              <Contact size={14} /> Contacts
+            </button>
+          )}
         </div>
       </div>
 

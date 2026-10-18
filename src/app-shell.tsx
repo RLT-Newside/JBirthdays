@@ -1,6 +1,7 @@
 // Copyright (C) 2024-2026 Justin Marty (RLT-Newside). Licensed under GPL-3.0.
 import { useCallback, useEffect, useState } from 'react'
 import { BackupImportDialog } from './components/backup-import-dialog/backup-import-dialog'
+import { ContactPicker } from './components/contact-picker/contact-picker'
 import { ErrorBoundary } from './components/error-boundary/error-boundary'
 import { ImportDialog } from './components/import-dialog/import-dialog'
 import { PersonDetailModal } from './components/person-detail-modal/person-detail-modal'
@@ -84,6 +85,7 @@ export function AppShell() {
 
       <PersonDetailModal />
       <PersonFormModal />
+      <ContactPicker />
       <QuickAddModal onAdded={(n) => flash(`Added ${n} ${n === 1 ? 'birthday' : 'birthdays'} 🎉`)} />
       <ImportDialog
         pending={pendingImport}

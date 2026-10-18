@@ -66,6 +66,11 @@ interface AppData {
   /** Person being edited; 'new' = add form; null = closed. */
   editingId: string | 'new' | null
   quickAddOpen: boolean
+  contactPickerOpen: boolean
+  setContactPickerOpen: (open: boolean) => void
+  /** Person being linked to one contact from their detail screen. */
+  linkingPersonId: string | null
+  setLinkingPersonId: (id: string | null) => void
   setQuickAddOpen: (open: boolean) => void
   setEditingId: (id: string | 'new' | null) => void
 
@@ -85,6 +90,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [viewingId, setViewingId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | 'new' | null>(null)
   const [quickAddOpen, setQuickAddOpen] = useState(false)
+  const [contactPickerOpen, setContactPickerOpen] = useState(false)
+  const [linkingPersonId, setLinkingPersonId] = useState<string | null>(null)
   const [notificationStatus, setNotificationStatus] = useState<NotificationStatus>('unsupported')
   const [pendingImport, setPendingImport] = useState<PendingImport | null>(null)
   const [pendingBackup, setPendingBackup] = useState<Backup | null>(null)
@@ -271,6 +278,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     setViewingId,
     editingId,
     quickAddOpen,
+    contactPickerOpen,
+    setContactPickerOpen,
+    linkingPersonId,
+    setLinkingPersonId,
     setQuickAddOpen,
     setEditingId,
     notificationStatus,

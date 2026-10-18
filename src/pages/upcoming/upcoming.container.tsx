@@ -1,11 +1,23 @@
 // Copyright (C) 2024-2026 Justin Marty (RLT-Newside). Licensed under GPL-3.0.
 import { useMemo } from 'react'
 import { useAppData } from '../../context/app-data'
+import { useContacts } from '../../context/contacts'
 import { sortUpcoming } from '../../utils/birthday'
 import { UpcomingView } from './upcoming.view'
 
 export function UpcomingContainer() {
-  const { people, tags, gifts, setViewingId, setEditingId, setTab, notificationStatus, setQuickAddOpen } = useAppData()
+  const {
+    people,
+    tags,
+    gifts,
+    setViewingId,
+    setEditingId,
+    setTab,
+    notificationStatus,
+    setQuickAddOpen,
+    setContactPickerOpen,
+  } = useAppData()
+  const { available } = useContacts()
   const upcoming = useMemo(() => sortUpcoming(people, new Date()), [people])
   const openIdeas = useMemo(() => {
     const counts = new Map<string, number>()
@@ -23,6 +35,7 @@ export function UpcomingContainer() {
       onAdd={() => setEditingId('new')}
       onGoShare={() => setTab('share')}
       onQuickAdd={() => setQuickAddOpen(true)}
+      onFromContacts={available ? () => setContactPickerOpen(true) : undefined}
       onGoSettings={() => setTab('settings')}
     />
   )

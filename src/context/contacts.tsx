@@ -3,7 +3,7 @@ import { App } from '@capacitor/app'
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { STORAGE_KEYS } from '../data/storage'
 import { useStorage } from '../hooks/useStorage'
-import type { Birthday, Person, PersonDraft } from '../types'
+import type { Birthday, ContactLink, Person, PersonDraft } from '../types'
 import { resolveBirthday } from '../utils/contactSync'
 import { type ContactSummary, type ContactSyncApi, getContactSync } from '../utils/contacts'
 import type { ContactPhone } from '../utils/whatsapp'
@@ -54,6 +54,17 @@ const birthdayOf = (b: Birthday): Birthday => ({
   day: b.day,
   ...(b.year !== undefined && { year: b.year }),
 })
+
+/** Link for a person who keeps `chosen`; the base is the contact's current birthday so the next sync writes `chosen` if it differs. */
+export function buildContactLink(contact: ContactSummary, chosen: Birthday): ContactLink {
+  return {
+    lookupKey: contact.lookupKey,
+    contactId: contact.contactId,
+    synced: birthdayOf(contact.birthday ?? chosen),
+    syncedAt: Date.now(),
+    ...(!contact.writable && { readOnly: true }),
+  }
+}
 
 export function ContactsProvider({ children, api: injected }: { children: ReactNode; api?: ContactSyncApi | null }) {
   const api = useMemo(() => (injected === undefined ? getContactSync() : injected), [injected])
@@ -169,18 +180,10 @@ export function ContactsProvider({ children, api: injected }: { children: ReactN
       const p = peopleRef.current.find((x) => x.id === personId)
       if (!p) return
       const chosen = birthdayOf(keep ?? p)
-      // Base = what the contact has now, so the next sync writes `chosen` if it differs.
-      const synced = contact.birthday ? birthdayOf(contact.birthday) : chosen
       patch(personId, {
         ...chosen,
         ...(chosen.year === undefined && { year: undefined }),
-        contact: {
-          lookupKey: contact.lookupKey,
-          contactId: contact.contactId,
-          synced,
-          syncedAt: Date.now(),
-          ...(!contact.writable && { readOnly: true }),
-        },
+        contact: buildContactLink(contact, chosen),
       })
       syncNow()
     },

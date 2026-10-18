@@ -1,11 +1,13 @@
 // Copyright (C) 2024-2026 Justin Marty (RLT-Newside). Licensed under GPL-3.0.
 import { useMemo, useState } from 'react'
 import { useAppData } from '../../context/app-data'
+import { useContacts } from '../../context/contacts'
 import { daysUntil, turningAge } from '../../utils/birthday'
 import { type PeopleRow, PeopleView, type SortMode } from './people.view'
 
 export function PeopleContainer() {
-  const { people, tags, setViewingId, setEditingId, setQuickAddOpen } = useAppData()
+  const { people, tags, setViewingId, setEditingId, setQuickAddOpen, setContactPickerOpen } = useAppData()
+  const { available } = useContacts()
   const [query, setQuery] = useState('')
   const [tagFilter, setTagFilter] = useState<string[]>([])
   const [sort, setSort] = useState<SortMode>('calendar')
@@ -40,6 +42,7 @@ export function PeopleContainer() {
       onOpen={setViewingId}
       onAdd={() => setEditingId('new')}
       onQuickAdd={() => setQuickAddOpen(true)}
+      onFromContacts={available ? () => setContactPickerOpen(true) : undefined}
     />
   )
 }
