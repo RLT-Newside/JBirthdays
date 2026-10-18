@@ -4,9 +4,9 @@ import { createContext, type ReactNode, useCallback, useContext, useEffect, useM
 import { STORAGE_KEYS } from '../data/storage'
 import { useStorage } from '../hooks/useStorage'
 import type { Birthday, ContactLink, Person, PersonDraft } from '../types'
-import { resolveBirthday } from '../utils/contactSync'
+import { resolveBirthday, sameBirthday } from '../utils/contactSync'
 import { type ContactSummary, type ContactSyncApi, getContactSync } from '../utils/contacts'
-import type { ContactPhone } from '../utils/whatsapp'
+import { type ContactPhone, hashNumber } from '../utils/whatsapp'
 import { useAppData } from './app-data'
 
 export interface CachedContact {
@@ -69,7 +69,11 @@ export function buildContactLink(contact: ContactSummary, chosen: Birthday): Con
 export function ContactsProvider({ children, api: injected }: { children: ReactNode; api?: ContactSyncApi | null }) {
   const api = useMemo(() => (injected === undefined ? getContactSync() : injected), [injected])
   const { people, updatePerson } = useAppData()
-  const [cache, setCache] = useStorage<Record<string, CachedContact>>(STORAGE_KEYS.contactCache, {})
+  // Contact details stay in memory only: WebView storage is part of Android's cloud
+  // backup, and the start-up sync refills this anyway.
+  const [cache, setCache] = useState<Record<string, CachedContact>>({})
+  // WhatsApp number choice per contact, stored as a hash so no phone number is persisted.
+  const [waChoice, setWaChoice] = useStorage<Record<string, string>>(STORAGE_KEYS.waChoice, {})
   const [syncing, setSyncing] = useState(false)
   const [lastResult, setLastResult] = useState<SyncResult | null>(null)
   const [requested, setRequested] = useState(0)
@@ -77,6 +81,7 @@ export function ContactsProvider({ children, api: injected }: { children: ReactN
   const peopleRef = useRef(people)
   peopleRef.current = people
   const running = useRef(false)
+  const rerun = useRef(false)
   const lastRun = useRef(0)
 
   const patch = useCallback(
@@ -88,20 +93,30 @@ export function ContactsProvider({ children, api: injected }: { children: ReactN
   )
 
   const runSync = useCallback(async () => {
-    if (!api || running.current) return
+    if (!api) return
+    if (running.current) {
+      rerun.current = true
+      return
+    }
     const linked = peopleRef.current.filter((p) => p.contact)
     if (linked.length === 0) return
     running.current = true
     lastRun.current = Date.now()
     setSyncing(true)
     const result: SyncResult = { pulled: 0, pushed: 0, failed: 0, unlinked: [] }
+    // The person as it is *now*, if still linked to the same contact (the user may
+    // have unlinked or edited them while we were waiting on the phone).
+    const current = (snapshot: Person): Person | undefined => {
+      const cur = peopleRef.current.find((x) => x.id === snapshot.id)
+      return cur?.contact?.lookupKey === snapshot.contact?.lookupKey ? cur : undefined
+    }
     try {
       const byKey = new Map(linked.map((p) => [p.contact!.lookupKey, p]))
       const { found, missing } = await api.get([...byKey.keys()])
 
       for (const key of missing) {
         const p = byKey.get(key)
-        if (!p) continue
+        if (!p || !current(p)) continue
         patch(p.id, { contact: undefined })
         result.unlinked.push(p.name)
       }
@@ -109,15 +124,23 @@ export function ContactsProvider({ children, api: injected }: { children: ReactN
       let writeGranted: boolean | undefined
       const nextCache: Record<string, CachedContact> = {}
       for (const c of found) {
-        const p = byKey.get(c.requestedKey)
+        const snapshot = byKey.get(c.requestedKey)
+        if (!snapshot) continue
+        const p = current(snapshot)
         if (!p?.contact) continue
+        const chosenHash = waChoice[c.lookupKey] ?? waChoice[c.requestedKey]
         nextCache[c.lookupKey] = {
           phones: c.phones,
           emails: c.emails,
           addresses: c.addresses,
-          waNumber: cache[c.requestedKey]?.waNumber,
+          waNumber: c.phones.find((ph) => ph.normalized && hashNumber(ph.normalized) === chosenHash)?.normalized,
         }
-        const action = resolveBirthday(p, { birthday: c.birthday, lastUpdated: c.lastUpdated, writable: c.writable })
+        const action = resolveBirthday(p, {
+          birthday: c.birthday,
+          birthdayUnreadable: c.birthdayUnreadable,
+          lastUpdated: c.lastUpdated,
+          writable: c.writable,
+        })
         let synced = p.contact.synced
         let syncedAt = p.contact.syncedAt
         if (action.push) {
@@ -143,7 +166,13 @@ export function ContactsProvider({ children, api: injected }: { children: ReactN
           syncedAt,
           ...(!c.writable && { readOnly: true }),
         }
-        patch(p.id, action.pull ? { ...birthdayOf(action.pull), contact } : { contact })
+        // Re-check after the awaits above: skip if unlinked meanwhile, and don't let a
+        // pull overwrite a birthday the user edited during this sync.
+        const now = current(snapshot)
+        if (!now) continue
+        if (action.pull && !sameBirthday(birthdayOf(now), birthdayOf(snapshot))) continue
+        const pulled = action.pull && { ...birthdayOf(action.pull), year: action.pull.year }
+        patch(p.id, pulled ? { ...pulled, contact } : { contact })
       }
       setCache(nextCache)
     } catch {
@@ -153,8 +182,12 @@ export function ContactsProvider({ children, api: injected }: { children: ReactN
       running.current = false
       setSyncing(false)
       setLastResult(result)
+      if (rerun.current) {
+        rerun.current = false
+        setRequested((n) => n + 1)
+      }
     }
-  }, [api, cache, patch, setCache])
+  }, [api, waChoice, patch])
 
   // Runs queued syncs once React has applied pending people updates (e.g. a fresh link).
   useEffect(() => {
@@ -195,14 +228,17 @@ export function ContactsProvider({ children, api: injected }: { children: ReactN
   const unlinkAll = useCallback(() => {
     for (const p of peopleRef.current) if (p.contact) patch(p.id, { contact: undefined })
     setCache({})
-  }, [patch, setCache])
+    setWaChoice({})
+  }, [patch, setWaChoice])
 
   const setWaNumber = useCallback(
-    (lookupKey: string, normalized: string) =>
+    (lookupKey: string, normalized: string) => {
+      setWaChoice((prev) => ({ ...prev, [lookupKey]: hashNumber(normalized) }))
       setCache((prev) =>
         prev[lookupKey] ? { ...prev, [lookupKey]: { ...prev[lookupKey], waNumber: normalized } } : prev,
-      ),
-    [setCache],
+      )
+    },
+    [setWaChoice],
   )
 
   const value: ContactsValue = {

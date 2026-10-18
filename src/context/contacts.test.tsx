@@ -104,10 +104,71 @@ describe('ContactsProvider sync', () => {
     expect(stored()[0].name).toBe('Lena')
   })
 
-  it('caches contact details on the device only', async () => {
+  it('keeps contact details in memory only, never in storage', async () => {
     renderWith([linkedPerson()], fakeApi([details()]))
     await waitFor(() => expect(ctx.cache.k1?.emails).toEqual(['lena@example.com']))
-    expect(JSON.parse(localStorage.getItem('bday_contact_cache') ?? '{}').k1.phones).toHaveLength(1)
+    const all = Object.keys(localStorage)
+      .map((k) => localStorage.getItem(k))
+      .join(' ')
+    expect(all).not.toContain('lena@example.com')
+    expect(all).not.toContain('41790000000')
+  })
+
+  it('remembers the WhatsApp choice without storing the number', async () => {
+    renderWith([linkedPerson()], fakeApi([details()]))
+    await waitFor(() => expect(ctx.cache.k1).toBeDefined())
+    act(() => ctx.setWaNumber('k1', '+41790000000'))
+    await waitFor(() => expect(ctx.cache.k1.waNumber).toBe('+41790000000'))
+    const all = Object.keys(localStorage)
+      .map((k) => localStorage.getItem(k))
+      .join(' ')
+    expect(all).not.toContain('41790000000')
+  })
+
+  it('takes a year removal from the contact instead of writing the year back', async () => {
+    const api = fakeApi([details({ birthday: { month: 3, day: 15 }, lastUpdated: 50 })])
+    renderWith([linkedPerson()], api)
+    await waitFor(() => expect(stored()[0].contact?.synced).toEqual({ month: 3, day: 15 }))
+    expect(stored()[0].year).toBeUndefined()
+    act(() => ctx.syncNow())
+    await waitFor(() => expect(api.get).toHaveBeenCalledTimes(2))
+    await waitFor(() => expect(ctx.syncing).toBe(false))
+    expect(api.setBirthday).not.toHaveBeenCalled()
+  })
+
+  it('never overwrites a contact birthday it cannot read', async () => {
+    const api = fakeApi([details({ birthday: undefined, birthdayUnreadable: true })])
+    renderWith([linkedPerson()], api)
+    await waitFor(() => expect(ctx.lastResult).not.toBeNull())
+    expect(api.setBirthday).not.toHaveBeenCalled()
+  })
+
+  it('does not re-link a person unlinked while a sync was running', async () => {
+    let release!: (v: { found: ContactDetails[]; missing: string[] }) => void
+    const api = fakeApi([])
+    api.get = vi.fn(() => new Promise<{ found: ContactDetails[]; missing: string[] }>((r) => (release = r)))
+    renderWith([linkedPerson()], api)
+    await waitFor(() => expect(api.get).toHaveBeenCalled())
+    act(() => ctx.unlink('p1'))
+    await act(async () => release({ found: [details({ birthday: { month: 4, day: 2, year: 1990 } })], missing: [] }))
+    await waitFor(() => expect(ctx.syncing).toBe(false))
+    expect(stored()[0].contact).toBeUndefined()
+    expect(stored()[0]).toMatchObject({ month: 3, day: 15 })
+  })
+
+  it('runs a sync requested while another was running', async () => {
+    let release!: (v: { found: ContactDetails[]; missing: string[] }) => void
+    const api = fakeApi([details()])
+    const first = new Promise<{ found: ContactDetails[]; missing: string[] }>((r) => (release = r))
+    api.get = vi
+      .fn()
+      .mockReturnValueOnce(first)
+      .mockResolvedValue({ found: [details()], missing: [] })
+    renderWith([linkedPerson()], api)
+    await waitFor(() => expect(api.get).toHaveBeenCalledTimes(1))
+    act(() => ctx.syncNow())
+    await act(async () => release({ found: [details()], missing: [] }))
+    await waitFor(() => expect(api.get).toHaveBeenCalledTimes(2))
   })
 
   it('links a person and writes the chosen birthday on the next sync', async () => {

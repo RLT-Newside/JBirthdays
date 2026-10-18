@@ -15,6 +15,11 @@ describe('parseImportText', () => {
     expect(await parseImportText(JSON.stringify(packet))).toEqual({ kind: 'packet', packet })
   })
 
+  it('finds a share link inside a pasted chat message with commas', async () => {
+    const link = await buildShareLink(packet, 'https://x.test/')
+    expect(await parseImportText(`Hey Lena, here are the birthdays: ${link}`)).toEqual({ kind: 'packet', packet })
+  })
+
   it('recognises backups', async () => {
     const r = await parseImportText(JSON.stringify({ app: 'jbirthdays-backup', schemaVersion: 1, data: {} }))
     expect(r?.kind).toBe('backup')

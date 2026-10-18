@@ -2,7 +2,7 @@
 import { type Backup, isBackup } from './backup'
 import { detectExternal, type ExternalFormat, parseExternal, toPacket } from './external'
 import type { SkippedEntry } from './external/types'
-import { decodePacket, parsePacket, readShareHash, type SharePacket } from './share'
+import { decodePacket, parsePacket, readShareHash, SHARE_HASH_KEY, type SharePacket } from './share'
 
 /** A packet waiting for the user's confirmation; `origin` is set for other apps' exports. */
 export interface PendingImport {
@@ -34,7 +34,8 @@ export async function parseImportText(text: string): Promise<ImportSource | null
       return null
     }
   }
-  const format = detectExternal(t)
+  // A share link wins even inside a chat message (which may contain commas).
+  const format = t.includes(`#${SHARE_HASH_KEY}=`) ? null : detectExternal(t)
   if (format) {
     const { entries, skipped } = parseExternal(t, format)
     if (entries.length === 0 && skipped.length === 0) return null

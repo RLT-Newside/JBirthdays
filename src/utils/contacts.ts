@@ -9,6 +9,8 @@ export interface ContactSummary {
   contactId: string
   name: string
   birthday?: Birthday
+  /** A birthday is stored but in a format the app can't read; it is left untouched. */
+  birthdayUnreadable?: boolean
   /** Has at least one raw contact JBirthdays may write (Google / device). */
   writable: boolean
 }
@@ -54,10 +56,14 @@ interface NativePlugin {
   setBirthday(o: { lookupKey: string; startDate: string }): Promise<void>
 }
 
-function withBirthday<T extends { birthday?: string | null }>(raw: T): Omit<T, 'birthday'> & { birthday?: Birthday } {
+/** Convert the plugin's START_DATE string; flags values that exist but can't be parsed. */
+export function fromRawContact<T extends { birthday?: string | null }>(
+  raw: T,
+): Omit<T, 'birthday'> & { birthday?: Birthday; birthdayUnreadable?: boolean } {
   const { birthday, ...rest } = raw
-  const parsed = birthday ? parseContactDate(birthday) : null
-  return parsed ? { ...rest, birthday: parsed } : rest
+  if (!birthday?.trim()) return rest
+  const parsed = parseContactDate(birthday)
+  return parsed ? { ...rest, birthday: parsed } : { ...rest, birthdayUnreadable: true }
 }
 
 /** The Android contacts bridge, or null on web / older APKs without the plugin. */
@@ -69,10 +75,10 @@ export function getContactSync(): ContactSyncApi | null {
   return {
     requestRead: async () => (await native.requestRead()).granted,
     requestWrite: async () => (await native.requestWrite()).granted,
-    list: async () => (await native.list()).contacts.map(withBirthday),
+    list: async () => (await native.list()).contacts.map(fromRawContact),
     get: async (lookupKeys) => {
       const r = await native.get({ lookupKeys })
-      return { found: r.found.map(withBirthday), missing: r.missing }
+      return { found: r.found.map(fromRawContact), missing: r.missing }
     },
     setBirthday: (lookupKey, birthday) => native.setBirthday({ lookupKey, startDate: formatContactDate(birthday) }),
   }

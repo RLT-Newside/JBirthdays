@@ -11,6 +11,8 @@ const pick = (b: Birthday): Birthday => ({ month: b.month, day: b.day, ...(b.yea
 /** What the contact currently says, as read from the phone. */
 export interface ContactSnapshot {
   birthday?: Birthday
+  /** The contact has a birthday value the app can't parse: never overwrite it. */
+  birthdayUnreadable?: boolean
   lastUpdated: number
   writable: boolean
 }
@@ -33,6 +35,7 @@ export function resolveBirthday(person: Person, contact: ContactSnapshot): SyncA
   const c = contact.birthday ? pick(contact.birthday) : undefined
   const push = (v: Birthday): SyncAction => (contact.writable ? { push: v, nextSynced: v } : { nextSynced: b })
 
+  if (!c && contact.birthdayUnreadable) return { nextSynced: b }
   if (!c) return contact.writable ? { push: a, nextSynced: a } : { nextSynced: a }
   const appChanged = !sameBirthday(a, b)
   const contactChanged = !sameBirthday(c, b)

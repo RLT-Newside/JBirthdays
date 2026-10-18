@@ -1,4 +1,4 @@
-import { formatContactDate, getContactSync, parseContactDate } from './contacts'
+import { formatContactDate, fromRawContact, getContactSync, parseContactDate } from './contacts'
 
 describe('contact dates', () => {
   it.each([
@@ -17,4 +17,19 @@ describe('contact dates', () => {
 
 describe('getContactSync', () => {
   it('is unavailable on the web', () => expect(getContactSync()).toBeNull())
+})
+
+describe('fromRawContact', () => {
+  it('flags a birthday string it cannot read', () => {
+    const raw = { lookupKey: 'k', contactId: '1', name: 'A', writable: true, birthday: '05/12/1990' }
+    expect(fromRawContact(raw)).toEqual({
+      lookupKey: 'k',
+      contactId: '1',
+      name: 'A',
+      writable: true,
+      birthdayUnreadable: true,
+    })
+    expect(fromRawContact({ ...raw, birthday: '--05-12' }).birthday).toEqual({ month: 5, day: 12 })
+    expect(fromRawContact({ ...raw, birthday: null })).not.toHaveProperty('birthdayUnreadable')
+  })
 })

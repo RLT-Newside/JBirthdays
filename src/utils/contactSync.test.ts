@@ -35,6 +35,11 @@ describe('resolveBirthday', () => {
   it('contact without birthday → push the app birthday', () => {
     expect(resolveBirthday(person(base), contact(undefined))).toEqual({ push: base, nextSynced: base })
   })
+  it('contact birthday that cannot be read → never overwritten', () => {
+    expect(resolveBirthday(person(base), { ...contact(undefined), birthdayUnreadable: true })).toEqual({
+      nextSynced: base,
+    })
+  })
   it('contact without birthday, read-only → nothing to write', () => {
     expect(resolveBirthday(person(base), contact(undefined, 100, false))).toEqual({ nextSynced: base })
   })

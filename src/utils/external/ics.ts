@@ -33,28 +33,42 @@ export function birthdayNameFromSummary(summary: string): string | null {
 export function parseIcs(text: string): ExternalResult {
   const result: ExternalResult = { entries: [], skipped: [] }
   let ev: Record<string, string> | null = null
+  let birthdaysCalendar = false
 
   for (const line of unfoldLines(text)) {
     const prop = splitProperty(line)
     if (!prop) continue
     const value = prop.value.trim()
-    if (prop.name === 'BEGIN' && value.toUpperCase() === 'VEVENT') ev = {}
+    if (prop.name === 'X-WR-CALNAME' && !ev) birthdaysCalendar = BIRTHDAY_CALENDAR.test(value)
+    else if (prop.name === 'BEGIN' && value.toUpperCase() === 'VEVENT') ev = {}
     else if (prop.name === 'END' && value.toUpperCase() === 'VEVENT' && ev) {
-      addEvent(ev, result)
+      addEvent(ev, birthdaysCalendar, result)
       ev = null
     } else if (ev && !(prop.name in ev)) ev[prop.name] = prop.value
   }
   return result
 }
 
-function addEvent(ev: Record<string, string>, result: ExternalResult) {
+// Calendar names of dedicated birthday calendars (Google "Birthdays", Apple "Geburtstage", …).
+const BIRTHDAY_CALENDAR = /birthday|geburtstag|anniversaire|cumplea|compleann|verjaardag/i
+
+/**
+ * A birthday-titled event always counts; a plain yearly event only inside a birthdays
+ * calendar (otherwise "Christmas" or "Car insurance" would become people). The start
+ * year is only a birth year in a birthdays calendar — elsewhere it's when the event was created.
+ */
+function addEvent(ev: Record<string, string>, birthdaysCalendar: boolean, result: ExternalResult) {
   const summary = unescapeValue(ev.SUMMARY ?? '').trim()
   const yearly = /FREQ=YEARLY/i.test(ev.RRULE ?? '')
   const fromTitle = birthdayNameFromSummary(summary)
-  if (!fromTitle && !yearly) return
+  if (!fromTitle && !(yearly && birthdaysCalendar)) return
   const name = fromTitle ?? summary
   if (!name) return
   const date = ev.DTSTART ? parseDateToken(ev.DTSTART) : null
-  if (!date || date === 'ambiguous') result.skipped.push({ label: name, reason: 'Unreadable date' })
-  else result.entries.push({ name, ...date })
+  if (!date || date === 'ambiguous') {
+    result.skipped.push({ label: name, reason: 'Unreadable date' })
+    return
+  }
+  const { year, ...monthDay } = date
+  result.entries.push(birthdaysCalendar && year !== undefined ? { name, ...monthDay, year } : { name, ...monthDay })
 }

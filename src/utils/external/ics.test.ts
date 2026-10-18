@@ -23,6 +23,7 @@ describe('parseIcs', () => {
       event(`SUMMARY:Meeting ${i}`, 'DTSTART;TZID=Europe/Zurich:20261018T090000'),
     )
     const fixture = cal(
+      'X-WR-CALNAME:Birthdays',
       ...meetings,
       event("SUMMARY:Lena's birthday", 'DTSTART;VALUE=DATE:19981024', 'RRULE:FREQ=YEARLY'),
       event('SUMMARY:Sam', 'DTSTART;VALUE=DATE:16040229', 'RRULE:FREQ=YEARLY'),
@@ -37,8 +38,18 @@ describe('parseIcs', () => {
 
   it('accepts a birthday-titled one-off event and unescapes the summary', () => {
     expect(parseIcs(cal(event('SUMMARY:Birthday: Smith, J.', 'DTSTART:20000105T000000Z'))).entries).toEqual([
-      { name: 'Smith, J.', month: 1, day: 5, year: 2000 },
+      { name: 'Smith, J.', month: 1, day: 5 },
     ])
+  })
+
+  it('ignores yearly events that are not birthdays outside a birthdays calendar', () => {
+    const r = parseIcs(cal(event('SUMMARY:Christmas', 'DTSTART;VALUE=DATE:20151225', 'RRULE:FREQ=YEARLY')))
+    expect(r).toEqual({ entries: [], skipped: [] })
+  })
+
+  it('does not take the event start year as birth year outside a birthdays calendar', () => {
+    const r = parseIcs(cal(event("SUMMARY:Lena's birthday", 'DTSTART;VALUE=DATE:20151024', 'RRULE:FREQ=YEARLY')))
+    expect(r.entries).toEqual([{ name: 'Lena', month: 10, day: 24 }])
   })
 
   it('skips a birthday event with a broken date', () => {
