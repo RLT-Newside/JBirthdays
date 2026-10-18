@@ -33,7 +33,7 @@ export function TagManager() {
               />
               <input
                 aria-label="Tag name"
-                className="field py-1.5"
+                className="field min-h-9 py-1.5"
                 defaultValue={t.name}
                 maxLength={40}
                 onBlur={(e) => {

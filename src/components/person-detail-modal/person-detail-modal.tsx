@@ -134,7 +134,7 @@ export function PersonDetailModal() {
               </h3>
               <select
                 aria-label="Template"
-                className="bg-transparent text-xs text-white/50 focus:outline-none"
+                className="field-pill"
                 value={template?.id}
                 onChange={(e) => setTemplateId(e.target.value)}
               >

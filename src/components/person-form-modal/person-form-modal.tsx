@@ -237,7 +237,7 @@ export function PersonFormModal() {
               type="checkbox"
               checked={form.customReminders}
               onChange={(e) => set('customReminders', e.target.checked)}
-              className="accent-[var(--color-brand)] w-4 h-4"
+              className="switch"
             />
           </label>
           {form.customReminders ? (

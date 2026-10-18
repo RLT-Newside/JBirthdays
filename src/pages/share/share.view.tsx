@@ -93,7 +93,7 @@ export function ShareView(props: Props) {
                     type="checkbox"
                     checked={props.picked.includes(p.id)}
                     onChange={() => props.onTogglePick(p.id)}
-                    className="accent-[var(--color-brand)] w-4 h-4"
+                    className="check"
                   />
                   <span className="flex-1 text-sm truncate">{p.name}</span>
                   <span className="text-xs text-white/35">{formatBirthday({ month: p.month, day: p.day })}</span>
@@ -117,7 +117,7 @@ export function ShareView(props: Props) {
             type="checkbox"
             checked={props.includePrivate}
             onChange={(e) => props.onIncludePrivate(e.target.checked)}
-            className="accent-[var(--color-brand)] w-4 h-4 mt-0.5"
+            className="switch mt-0.5"
           />
           <span className="text-xs text-white/60">
             Include notes &amp; gift ideas
