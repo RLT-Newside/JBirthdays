@@ -1,5 +1,5 @@
 // Copyright (C) 2024-2026 Justin Marty (RLT-Newside). Licensed under GPL-3.0.
-import { BellOff, Cake, Gift, Plus } from 'lucide-react'
+import { BellOff, Cake, Gift, ListPlus, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { Avatar } from '../../components/avatar/avatar'
 import { Button } from '../../components/button/button'
@@ -17,6 +17,7 @@ interface Props {
   onOpen: (id: string) => void
   onAdd: () => void
   onGoShare: () => void
+  onQuickAdd: () => void
   onGoSettings: () => void
 }
 
@@ -66,6 +67,7 @@ export function UpcomingView({
   onOpen,
   onAdd,
   onGoShare,
+  onQuickAdd,
   onGoSettings,
 }: Props) {
   const [showAllLater, setShowAllLater] = useState(false)
@@ -82,6 +84,9 @@ export function UpcomingView({
         </p>
         <Button onClick={onAdd} className="flex items-center gap-2">
           <Plus size={16} /> Add first birthday
+        </Button>
+        <Button variant="secondary" onClick={onQuickAdd} className="flex items-center gap-2">
+          <ListPlus size={16} /> Add several at once
         </Button>
         <button type="button" onClick={onGoShare} className="text-xs text-white/40 underline underline-offset-4">
           Got a link from a friend? Import it

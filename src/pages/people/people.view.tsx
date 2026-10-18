@@ -1,5 +1,5 @@
 // Copyright (C) 2024-2026 Justin Marty (RLT-Newside). Licensed under GPL-3.0.
-import { Search, Users } from 'lucide-react'
+import { ListPlus, Search, Users } from 'lucide-react'
 import { Fab } from '../../components/fab/fab'
 import { PersonRow } from '../../components/person-row/person-row'
 import { TagChip } from '../../components/tag-chip/tag-chip'
@@ -26,6 +26,7 @@ interface Props {
   onSort: (s: SortMode) => void
   onOpen: (id: string) => void
   onAdd: () => void
+  onQuickAdd: () => void
 }
 
 export function PeopleView({
@@ -40,6 +41,7 @@ export function PeopleView({
   onSort,
   onOpen,
   onAdd,
+  onQuickAdd,
 }: Props) {
   const groups: { label: string; rows: PeopleRow[] }[] = []
   if (sort === 'calendar') {
@@ -57,7 +59,16 @@ export function PeopleView({
     <div className="space-y-4 pb-4">
       <div className="flex items-baseline justify-between">
         <h2 className="font-heading text-3xl">People</h2>
-        <span className="text-xs text-white/40">{total} saved</span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-white/40">{total} saved</span>
+          <button
+            type="button"
+            onClick={onQuickAdd}
+            className="flex items-center gap-1 text-xs text-brand/80 hover:text-brand press-scale"
+          >
+            <ListPlus size={14} /> Quick add
+          </button>
+        </div>
       </div>
 
       <div className="relative">

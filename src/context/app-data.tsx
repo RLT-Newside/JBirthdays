@@ -64,6 +64,8 @@ interface AppData {
   setViewingId: (id: string | null) => void
   /** Person being edited; 'new' = add form; null = closed. */
   editingId: string | 'new' | null
+  quickAddOpen: boolean
+  setQuickAddOpen: (open: boolean) => void
   setEditingId: (id: string | 'new' | null) => void
 
   notificationStatus: NotificationStatus
@@ -81,6 +83,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [storedSettings, setSettings] = useStorage<Settings>(STORAGE_KEYS.settings, DEFAULT_SETTINGS)
   const [viewingId, setViewingId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | 'new' | null>(null)
+  const [quickAddOpen, setQuickAddOpen] = useState(false)
   const [notificationStatus, setNotificationStatus] = useState<NotificationStatus>('unsupported')
   const [pendingImport, setPendingImport] = useState<PendingImport | null>(null)
   const [pendingBackup, setPendingBackup] = useState<Backup | null>(null)
@@ -259,6 +262,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     viewingId,
     setViewingId,
     editingId,
+    quickAddOpen,
+    setQuickAddOpen,
     setEditingId,
     notificationStatus,
     enableNotifications,

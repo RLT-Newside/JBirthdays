@@ -5,7 +5,7 @@ import { daysUntil, turningAge } from '../../utils/birthday'
 import { type PeopleRow, PeopleView, type SortMode } from './people.view'
 
 export function PeopleContainer() {
-  const { people, tags, setViewingId, setEditingId } = useAppData()
+  const { people, tags, setViewingId, setEditingId, setQuickAddOpen } = useAppData()
   const [query, setQuery] = useState('')
   const [tagFilter, setTagFilter] = useState<string[]>([])
   const [sort, setSort] = useState<SortMode>('calendar')
@@ -39,6 +39,7 @@ export function PeopleContainer() {
       onSort={setSort}
       onOpen={setViewingId}
       onAdd={() => setEditingId('new')}
+      onQuickAdd={() => setQuickAddOpen(true)}
     />
   )
 }

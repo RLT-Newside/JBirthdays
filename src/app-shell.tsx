@@ -5,6 +5,7 @@ import { ErrorBoundary } from './components/error-boundary/error-boundary'
 import { ImportDialog } from './components/import-dialog/import-dialog'
 import { PersonDetailModal } from './components/person-detail-modal/person-detail-modal'
 import { PersonFormModal } from './components/person-form-modal/person-form-modal'
+import { QuickAddModal } from './components/quick-add-modal/quick-add-modal'
 import { UpdateBanner } from './components/update-banner/update-banner'
 import { useAppData } from './context/app-data'
 import { useAppUpdate } from './context/update'
@@ -68,6 +69,7 @@ export function AppShell() {
 
       <PersonDetailModal />
       <PersonFormModal />
+      <QuickAddModal onAdded={(n) => flash(`Added ${n} ${n === 1 ? 'birthday' : 'birthdays'} 🎉`)} />
       <ImportDialog
         pending={pendingImport}
         onClose={() => setPendingImport(null)}

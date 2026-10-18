@@ -5,7 +5,7 @@ import { sortUpcoming } from '../../utils/birthday'
 import { UpcomingView } from './upcoming.view'
 
 export function UpcomingContainer() {
-  const { people, tags, gifts, setViewingId, setEditingId, setTab, notificationStatus } = useAppData()
+  const { people, tags, gifts, setViewingId, setEditingId, setTab, notificationStatus, setQuickAddOpen } = useAppData()
   const upcoming = useMemo(() => sortUpcoming(people, new Date()), [people])
   const openIdeas = useMemo(() => {
     const counts = new Map<string, number>()
@@ -22,6 +22,7 @@ export function UpcomingContainer() {
       onOpen={setViewingId}
       onAdd={() => setEditingId('new')}
       onGoShare={() => setTab('share')}
+      onQuickAdd={() => setQuickAddOpen(true)}
       onGoSettings={() => setTab('settings')}
     />
   )
