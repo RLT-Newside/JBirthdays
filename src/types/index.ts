@@ -2,6 +2,13 @@
 
 export type Tab = 'upcoming' | 'people' | 'share' | 'settings'
 
+/** A birthday as stored on a person or a contact; year omitted when unknown. */
+export interface Birthday {
+  month: number
+  day: number
+  year?: number
+}
+
 export interface Person {
   id: string
   name: string
