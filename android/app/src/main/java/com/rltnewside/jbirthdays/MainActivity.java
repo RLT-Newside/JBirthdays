@@ -16,6 +16,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(ImportBridgePlugin.class);
         registerPlugin(AppUpdatePlugin.class);
+        registerPlugin(ContactSyncPlugin.class);
         super.onCreate(savedInstanceState);
 
         ImportBridgePlugin.captureIntent(getIntent(), this);
