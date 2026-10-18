@@ -13,3 +13,6 @@ vi.mock('@capacitor/app', () => ({
 beforeEach(() => {
   localStorage.clear()
 })
+
+// jsdom has no layout engine; components call scrollIntoView on open.
+if (!Element.prototype.scrollIntoView) Element.prototype.scrollIntoView = () => {}

@@ -8,6 +8,7 @@ import { TAG_COLORS } from '../../utils/importMerge'
 import { Button } from '../button/button'
 import { FormField } from '../form-field/form-field'
 import { Modal } from '../modal/modal'
+import { Select } from '../select/select'
 import { TagChip } from '../tag-chip/tag-chip'
 
 export const REMINDER_OPTIONS = [0, 1, 3, 7, 14, 30]
@@ -138,30 +139,19 @@ export function PersonFormModal() {
         <div>
           <span className="label-caption block mb-1">Birthday</span>
           <div className="grid grid-cols-[1fr_1.4fr_1.2fr] gap-2">
-            <select
+            <Select
               aria-label="Day"
-              className="field"
+              columns={7}
               value={Math.min(form.day, maxDay)}
-              onChange={(e) => set('day', Number(e.target.value))}
-            >
-              {Array.from({ length: maxDay }, (_, i) => i + 1).map((d) => (
-                <option key={d} value={d}>
-                  {d}
-                </option>
-              ))}
-            </select>
-            <select
+              onChange={(d) => set('day', d)}
+              options={Array.from({ length: maxDay }, (_, i) => ({ value: i + 1, label: String(i + 1) }))}
+            />
+            <Select
               aria-label="Month"
-              className="field"
               value={form.month}
-              onChange={(e) => set('month', Number(e.target.value))}
-            >
-              {MONTHS.map((m) => (
-                <option key={m} value={m}>
-                  {monthName(m)}
-                </option>
-              ))}
-            </select>
+              onChange={(m) => set('month', m)}
+              options={MONTHS.map((m) => ({ value: m, label: monthName(m) }))}
+            />
             <input
               aria-label="Year (optional)"
               className="field"
@@ -270,19 +260,12 @@ export function PersonFormModal() {
           <label className="label-caption block mb-1" htmlFor="tpl-select">
             Greeting template
           </label>
-          <select
+          <Select
             id="tpl-select"
-            className="field"
             value={form.templateId}
-            onChange={(e) => set('templateId', e.target.value)}
-          >
-            <option value="">Default</option>
-            {templates.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
-            ))}
-          </select>
+            onChange={(id) => set('templateId', id)}
+            options={[{ value: '', label: 'Default' }, ...templates.map((t) => ({ value: t.id, label: t.name }))]}
+          />
         </div>
 
         <div className="flex gap-3 justify-end pt-2">

@@ -3,6 +3,7 @@ import { Bell, BellOff, Info } from 'lucide-react'
 import { Button } from '../../../../components/button/button'
 import { GlassCard } from '../../../../components/glass-card/glass-card'
 import { REMINDER_OPTIONS, reminderLabel } from '../../../../components/person-form-modal/person-form-modal'
+import { Select } from '../../../../components/select/select'
 import { useAppData } from '../../../../context/app-data'
 
 const HOURS = Array.from({ length: 24 }, (_, h) => h)
@@ -72,18 +73,13 @@ export function ReminderSettings() {
         <label htmlFor="reminder-hour" className="label-caption">
           Time of day
         </label>
-        <select
+        <Select
           id="reminder-hour"
-          className="field w-auto"
+          className="w-28"
           value={settings.reminderHour}
-          onChange={(e) => updateSettings({ reminderHour: Number(e.target.value) })}
-        >
-          {HOURS.map((h) => (
-            <option key={h} value={h}>
-              {String(h).padStart(2, '0')}:00
-            </option>
-          ))}
-        </select>
+          onChange={(h) => updateSettings({ reminderHour: h })}
+          options={HOURS.map((h) => ({ value: h, label: `${String(h).padStart(2, '0')}:00` }))}
+        />
       </div>
     </GlassCard>
   )

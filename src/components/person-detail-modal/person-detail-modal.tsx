@@ -16,6 +16,7 @@ import { Avatar } from '../avatar/avatar'
 import { Button } from '../button/button'
 import { ConfirmDialog } from '../confirm-dialog/confirm-dialog'
 import { Modal } from '../modal/modal'
+import { Select } from '../select/select'
 import { TagChip } from '../tag-chip/tag-chip'
 
 export function PersonDetailModal() {
@@ -132,18 +133,13 @@ export function PersonDetailModal() {
               <h3 className="section-head mb-0 flex items-center gap-1.5">
                 <MessageCircleHeart size={14} /> Send wishes
               </h3>
-              <select
+              <Select
                 aria-label="Template"
-                className="field-pill"
-                value={template?.id}
-                onChange={(e) => setTemplateId(e.target.value)}
-              >
-                {templates.map((t) => (
-                  <option key={t.id} value={t.id} className="bg-[#1a1a1a]">
-                    {t.name}
-                  </option>
-                ))}
-              </select>
+                variant="pill"
+                value={template?.id ?? ''}
+                onChange={setTemplateId}
+                options={templates.map((t) => ({ value: t.id, label: t.name }))}
+              />
             </div>
             <textarea
               aria-label="Message"
