@@ -2,15 +2,18 @@
 import { AppShell } from './app-shell'
 import { ErrorBoundary } from './components/error-boundary/error-boundary'
 import { AppDataProvider } from './context/app-data'
+import { ContactsProvider } from './context/contacts'
 import { UpdateProvider } from './context/update'
 
 export default function App() {
   return (
     <ErrorBoundary>
       <AppDataProvider>
-        <UpdateProvider>
-          <AppShell />
-        </UpdateProvider>
+        <ContactsProvider>
+          <UpdateProvider>
+            <AppShell />
+          </UpdateProvider>
+        </ContactsProvider>
       </AppDataProvider>
     </ErrorBoundary>
   )

@@ -15,7 +15,9 @@ describe('backup', () => {
 
   it('skips device-only update cache keys both ways', () => {
     localStorage.setItem('bday_update_last_check', '123')
+    localStorage.setItem('bday_contact_cache', '{"k":{"phones":[]}}')
     expect(createBackup().data).not.toHaveProperty('bday_update_last_check')
+    expect(createBackup().data).not.toHaveProperty('bday_contact_cache')
     applyBackup(
       { app: 'jbirthdays-backup', schemaVersion: 1, exportedAt: '', data: { bday_update_cached: { version: 'v9' } } },
       'replace',

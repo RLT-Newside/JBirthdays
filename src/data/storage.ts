@@ -18,10 +18,16 @@ export const STORAGE_KEYS = {
   // Device-local update-check cache (excluded from backups).
   updateLastCheck: 'bday_update_last_check',
   updateCached: 'bday_update_cached',
+  // Linked contacts' phones/emails/addresses (device-only, excluded from backups).
+  contactCache: 'bday_contact_cache',
 } as const
 
 /** Keys that describe this install, not the user's data — never backed up. */
-export const DEVICE_ONLY_KEYS: readonly string[] = [STORAGE_KEYS.updateLastCheck, STORAGE_KEYS.updateCached]
+export const DEVICE_ONLY_KEYS: readonly string[] = [
+  STORAGE_KEYS.updateLastCheck,
+  STORAGE_KEYS.updateCached,
+  STORAGE_KEYS.contactCache,
+]
 
 export type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS]
 

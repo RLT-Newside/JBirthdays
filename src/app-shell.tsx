@@ -1,5 +1,5 @@
 // Copyright (C) 2024-2026 Justin Marty (RLT-Newside). Licensed under GPL-3.0.
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { BackupImportDialog } from './components/backup-import-dialog/backup-import-dialog'
 import { ErrorBoundary } from './components/error-boundary/error-boundary'
 import { ImportDialog } from './components/import-dialog/import-dialog'
@@ -8,6 +8,7 @@ import { PersonFormModal } from './components/person-form-modal/person-form-moda
 import { QuickAddModal } from './components/quick-add-modal/quick-add-modal'
 import { UpdateBanner } from './components/update-banner/update-banner'
 import { useAppData } from './context/app-data'
+import { useContacts } from './context/contacts'
 import { useAppUpdate } from './context/update'
 import { useBackButton } from './hooks/useBackButton'
 import { useKeyboardVisible } from './hooks/useKeyboardVisible'
@@ -30,6 +31,20 @@ export function AppShell() {
     setToast(text)
     setTimeout(() => setToast(undefined), 3000)
   }, [])
+
+  // Never fail silently: say when contacts couldn't be updated or were deleted.
+  const { lastResult } = useContacts()
+  useEffect(() => {
+    if (!lastResult) return
+    const parts: string[] = []
+    if (lastResult.failed > 0)
+      parts.push(`Couldn't update ${lastResult.failed} ${lastResult.failed === 1 ? 'contact' : 'contacts'}`)
+    if (lastResult.unlinked.length > 0)
+      parts.push(
+        `Unlinked ${lastResult.unlinked.length} deleted ${lastResult.unlinked.length === 1 ? 'contact' : 'contacts'}: ${lastResult.unlinked.join(', ')}`,
+      )
+    if (parts.length) flash(parts.join(' · '))
+  }, [lastResult, flash])
 
   useLinkImport(
     (packet) => setPendingImport({ packet }),
