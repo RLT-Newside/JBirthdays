@@ -27,6 +27,16 @@ describe('buildPacket', () => {
     expect(pk.people[1]).not.toHaveProperty('year')
     expect(pk.gifts).toBeUndefined()
   })
+  it('never includes contact links or sync timestamps', () => {
+    const linked = {
+      ...people[1],
+      birthdayChangedAt: 5,
+      contact: { lookupKey: 'k', synced: { month: 2, day: 29 }, syncedAt: 5 },
+    }
+    const pk = buildPacket([linked], tags, gifts, { includePrivate: true })
+    expect(pk.people[0]).not.toHaveProperty('contact')
+    expect(pk.people[0]).not.toHaveProperty('birthdayChangedAt')
+  })
   it('includes notes and gifts when opted in', () => {
     const pk = buildPacket(people, tags, gifts, { includePrivate: true, from: ' Justin ' })
     expect(pk.people[0].notes).toBe('secret')

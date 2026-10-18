@@ -9,6 +9,17 @@ export interface Birthday {
   year?: number
 }
 
+/** Link between a person and an Android contact; only the birthday syncs. */
+export interface ContactLink {
+  lookupKey: string
+  contactId?: string
+  /** Last birthday both sides agreed on — the base for the three-way merge. */
+  synced: Birthday
+  syncedAt: number
+  /** The contact can't be written (e.g. WhatsApp/SIM only): sync is contact → app. */
+  readOnly?: boolean
+}
+
 export interface Person {
   id: string
   name: string
@@ -23,6 +34,9 @@ export interface Person {
   /** Days before the birthday to remind; undefined = use settings default. */
   reminderDays?: number[]
   templateId?: string
+  contact?: ContactLink
+  /** When month/day/year last changed (not other edits); decides sync conflicts. */
+  birthdayChangedAt?: number
   createdAt: number
   updatedAt: number
 }

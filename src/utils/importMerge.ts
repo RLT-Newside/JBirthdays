@@ -77,7 +77,8 @@ export function applyImport(packet: SharePacket, state: ImportState, now = Date.
     const mergedTags = Array.from(new Set([...p.tagIds, ...tagIds(m.incoming.tags)]))
     const year = p.year ?? m.incoming.year
     const changed = year !== p.year || mergedTags.length !== p.tagIds.length
-    return changed ? { ...p, year, tagIds: mergedTags, updatedAt: now } : p
+    if (!changed) return p
+    return { ...p, year, tagIds: mergedTags, updatedAt: now, ...(year !== p.year && { birthdayChangedAt: now }) }
   })
 
   for (const sp of plan.added) {

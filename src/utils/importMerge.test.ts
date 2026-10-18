@@ -49,6 +49,10 @@ describe('applyImport', () => {
     expect(lena.tagIds).toEqual(['tFam', squad.id])
   })
 
+  it('counts a filled-in year as a birthday change', () => {
+    expect(result.people.find((p) => p.id === 'local1')!.birthdayChangedAt).toBe(99)
+  })
+
   it('adds new people with tags matched case-insensitively', () => {
     expect(result.people).toHaveLength(2)
     const max = result.people.find((p) => p.name === 'Max')!

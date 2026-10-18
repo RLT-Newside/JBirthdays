@@ -6,6 +6,7 @@ import { SCHEMA_VERSION, STORAGE_KEYS } from '../data/storage'
 import { useStorage } from '../hooks/useStorage'
 import type { GiftIdea, Person, PersonDraft, Settings, Tab, Tag, Template } from '../types'
 import type { Backup } from '../utils/backup'
+import { sameBirthday } from '../utils/contactSync'
 import { applyImport } from '../utils/importMerge'
 import type { PendingImport } from '../utils/importSource'
 import {
@@ -94,7 +95,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const addPerson = useCallback(
     (draft: PersonDraft) => {
       const now = Date.now()
-      const person: Person = { ...draft, id: uuid(), createdAt: now, updatedAt: now }
+      const person: Person = { ...draft, id: uuid(), createdAt: now, updatedAt: now, birthdayChangedAt: now }
       setPeople((prev) => [...prev, person])
       return person
     },
@@ -103,7 +104,14 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const updatePerson = useCallback(
     (id: string, draft: PersonDraft) => {
-      setPeople((prev) => prev.map((p) => (p.id === id ? { ...p, ...draft, updatedAt: Date.now() } : p)))
+      const now = Date.now()
+      setPeople((prev) =>
+        prev.map((p) => {
+          if (p.id !== id) return p
+          const next = { ...p, ...draft, updatedAt: now }
+          return sameBirthday(p, next) ? next : { ...next, birthdayChangedAt: now }
+        }),
+      )
     },
     [setPeople],
   )
