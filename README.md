@@ -28,3 +28,17 @@ npm run android:open
 ```
 
 Share links point at `SHARE_BASE_URL` in `src/utils/share.ts` — update it to wherever the web build is deployed.
+
+## Releases (APK for your phone)
+
+`.github/workflows/release.yml` runs on every push to `main` (or manually): checks → signed release APK → GitHub Release `v1.0.<run>`.
+
+One-time setup (needs `gh`, `keytool`, `openssl`):
+
+```sh
+bash scripts/setup-signing.sh RLT-Newside/JBirthdays
+```
+
+This creates `~/.jbirthdays-release.keystore` and stores it plus its password as repo secrets. Back up the keystore — a new key means phones must uninstall (losing data) before installing updates.
+
+On the phone: open the latest Release → download the `.apk` → allow "install unknown apps" for your browser once.

@@ -1,5 +1,21 @@
 apply plugin: 'com.android.application'
 
+// Each commit bumps versionCode so a newer APK installs over the old one.
+def getVersionCode = { ->
+    def stdout = new ByteArrayOutputStream()
+    try {
+        exec { commandLine 'git', 'rev-list', '--count', 'HEAD'; standardOutput = stdout }
+        return Integer.parseInt(stdout.toString().trim())
+    } catch (Exception e) {
+        return 1
+    }
+}
+
+def getVersionName = { ->
+    def appVersion = System.getenv('APP_VERSION')
+    return appVersion ? appVersion.replaceFirst('^v', '') : '0.0.0-dev'
+}
+
 android {
     namespace = "com.rltnewside.jbirthdays"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +23,8 @@ android {
         applicationId "com.rltnewside.jbirthdays"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode getVersionCode()
+        versionName getVersionName()
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
