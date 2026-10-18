@@ -1,7 +1,24 @@
 // Copyright (C) 2024-2026 Justin Marty (RLT-Newside). Licensed under GPL-3.0.
-import { Check, ExternalLink, Gift, MessageCircleHeart, Pencil, Plus, RotateCcw, Trash2, Undo2 } from 'lucide-react'
+import {
+  Check,
+  Contact,
+  ExternalLink,
+  Gift,
+  Link2,
+  Mail,
+  MapPin,
+  MessageCircleHeart,
+  Pencil,
+  Phone,
+  Plus,
+  RotateCcw,
+  Trash2,
+  Undo2,
+  Unlink,
+} from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useAppData } from '../../context/app-data'
+import { useContacts } from '../../context/contacts'
 import {
   countdownLabel,
   daysUntil,
@@ -10,8 +27,9 @@ import {
   nextOccurrence,
   turningAge,
 } from '../../utils/birthday'
-import { shareText } from '../../utils/greeting'
+import { openExternal, shareText } from '../../utils/greeting'
 import { pickTemplate, renderTemplate } from '../../utils/templates'
+import { whatsappCandidates, whatsappLink } from '../../utils/whatsapp'
 import { Avatar } from '../avatar/avatar'
 import { Button } from '../button/button'
 import { ConfirmDialog } from '../confirm-dialog/confirm-dialog'
@@ -33,7 +51,9 @@ export function PersonDetailModal() {
     addGift,
     updateGift,
     deleteGift,
+    setLinkingPersonId,
   } = useAppData()
+  const contacts = useContacts()
   const person = people.find((p) => p.id === viewingId)
   const open = !!person
 
@@ -44,6 +64,7 @@ export function PersonDetailModal() {
   const [showLink, setShowLink] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [toast, setToast] = useState<string>()
+  const [choosingNumber, setChoosingNumber] = useState(false)
 
   const today = new Date()
   const template = person
@@ -57,6 +78,7 @@ export function PersonDetailModal() {
     setGiftLink('')
     setShowLink(false)
     setToast(undefined)
+    setChoosingNumber(false)
   }, [viewingId])
 
   useEffect(() => {
@@ -86,6 +108,22 @@ export function PersonDetailModal() {
     const r = await shareText(message)
     if (r === 'copied') flash('Copied — paste it into your chat')
     else if (r === 'failed') flash('Could not open share sheet')
+  }
+
+  const lookupKey = person.contact?.lookupKey
+  const cached = lookupKey ? contacts.cache[lookupKey] : undefined
+  const waNumbers = whatsappCandidates(cached?.phones ?? [])
+  const savedNumber = waNumbers.find((p) => p.normalized === cached?.waNumber)?.normalized
+
+  const sendWhatsApp = (number?: string) => {
+    const n = number ?? savedNumber ?? (waNumbers.length === 1 ? waNumbers[0].normalized : undefined)
+    if (!n) {
+      setChoosingNumber(true)
+      return
+    }
+    if (number && lookupKey) contacts.setWaNumber(lookupKey, number)
+    setChoosingNumber(false)
+    openExternal(whatsappLink(n, message))
   }
 
   const submitGift = () => {
@@ -148,9 +186,40 @@ export function PersonDetailModal() {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
             />
+            {waNumbers.length > 0 && (
+              <Button
+                className="w-full mt-2 flex items-center justify-center gap-2"
+                onClick={() => sendWhatsApp()}
+                disabled={!message.trim()}
+              >
+                <MessageCircleHeart size={16} /> Send on WhatsApp
+              </Button>
+            )}
+            {choosingNumber && (
+              <div className="mt-2 space-y-1.5">
+                <p className="text-xs text-white/50">Which number uses WhatsApp?</p>
+                <div className="flex flex-wrap gap-2">
+                  {waNumbers.map((p) => (
+                    <button
+                      key={p.normalized}
+                      type="button"
+                      onClick={() => sendWhatsApp(p.normalized)}
+                      className="px-3 py-1.5 rounded-full border border-white/[0.1] text-xs text-white/75 hover:border-brand/60 hover:text-brand"
+                    >
+                      {p.normalized}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="flex gap-2 mt-2">
-              <Button className="flex-1" onClick={send} disabled={!message.trim()}>
-                Send greeting
+              <Button
+                className="flex-1"
+                variant={waNumbers.length > 0 ? 'secondary' : 'primary'}
+                onClick={send}
+                disabled={!message.trim()}
+              >
+                {waNumbers.length > 0 ? 'Other apps' : 'Send greeting'}
               </Button>
               <Button
                 variant="ghost"
@@ -161,6 +230,73 @@ export function PersonDetailModal() {
               </Button>
             </div>
           </section>
+
+          {person.contact && (
+            <section>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="section-head mb-0 flex items-center gap-1.5">
+                  <Contact size={14} /> Contact
+                </h3>
+                {person.contact.readOnly && (
+                  <span className="text-[10px] text-white/45 border border-white/[0.1] rounded-full px-2 py-0.5">
+                    Read-only contact
+                  </span>
+                )}
+              </div>
+              <ul className="space-y-1 text-sm">
+                {cached?.phones.map((p) => (
+                  <li key={`${p.number}-${p.type}`} className="flex items-center gap-2">
+                    <Phone size={13} className="text-white/35 shrink-0" />
+                    <a href={`tel:${p.number}`} className="flex-1 truncate hover:text-brand">
+                      {p.number}
+                    </a>
+                    <a href={`sms:${p.number}`} className="text-xs text-white/40 hover:text-brand">
+                      SMS
+                    </a>
+                  </li>
+                ))}
+                {cached?.emails.map((e) => (
+                  <li key={e} className="flex items-center gap-2">
+                    <Mail size={13} className="text-white/35 shrink-0" />
+                    <a href={`mailto:${e}`} className="truncate hover:text-brand">
+                      {e}
+                    </a>
+                  </li>
+                ))}
+                {cached?.addresses.map((a) => (
+                  <li key={a} className="flex items-center gap-2">
+                    <MapPin size={13} className="text-white/35 shrink-0" />
+                    <a
+                      href={`https://maps.google.com/?q=${encodeURIComponent(a)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="truncate hover:text-brand"
+                    >
+                      {a.replace(/\n/g, ', ')}
+                    </a>
+                  </li>
+                ))}
+                {!cached && <li className="text-xs text-white/35">Details appear after the next sync.</li>}
+              </ul>
+              <button
+                type="button"
+                onClick={() => contacts.unlink(person.id)}
+                className="mt-2 flex items-center gap-1.5 text-xs text-white/40 hover:text-white/70"
+              >
+                <Unlink size={12} /> Unlink contact
+              </button>
+            </section>
+          )}
+
+          {!person.contact && contacts.available && (
+            <button
+              type="button"
+              onClick={() => setLinkingPersonId(person.id)}
+              className="flex items-center gap-1.5 text-xs text-brand/80 hover:text-brand"
+            >
+              <Link2 size={13} /> Link to contact
+            </button>
+          )}
 
           <section>
             <h3 className="section-head flex items-center gap-1.5">

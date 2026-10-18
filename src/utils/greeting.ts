@@ -31,3 +31,8 @@ export async function shareText(text: string, title?: string, url?: string): Pro
     return 'failed'
   }
 }
+
+/** Open a URL outside the app (Android hands wa.me links to WhatsApp). */
+export function openExternal(url: string): void {
+  window.open(url, '_system')
+}

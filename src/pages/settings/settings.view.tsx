@@ -5,6 +5,7 @@ import { Button } from '../../components/button/button'
 import { GlassCard } from '../../components/glass-card/glass-card'
 import { THEMES, type Theme } from '../../hooks/useTheme'
 import { AppVersion } from './components/app-version/app-version'
+import { ContactsCard } from './components/contacts-card/contacts-card'
 import { ReminderSettings } from './components/reminder-settings/reminder-settings'
 import { TagManager } from './components/tag-manager/tag-manager'
 import { TemplateManager } from './components/template-manager/template-manager'
@@ -25,6 +26,8 @@ export function SettingsView({ theme, onTheme, onExportBackup, onImportBackup, b
       <h2 className="font-heading text-3xl">Settings</h2>
 
       <ReminderSettings />
+
+      <ContactsCard />
 
       <GlassCard className="space-y-3">
         <h3 className="font-medium flex items-center gap-2">
@@ -83,7 +86,8 @@ export function SettingsView({ theme, onTheme, onExportBackup, onImportBackup, b
         </h3>
         <p className="text-xs text-white/45">
           No accounts, no servers, no tracking. Birthdays leave your device only when you share a link or file yourself
-          — share links carry the data inside the link itself.
+          — share links carry the data inside the link itself. Linked contacts' phone numbers and addresses are read on
+          this device only and never included in backups or share links.
         </p>
       </GlassCard>
 
