@@ -127,7 +127,7 @@ When sync runs: on app start and on resume (existing `appStateChange`), throttle
 - How placeholder years in `.ics` are detected beyond the examples.
 - Test strategy for the native plugin. No device is connected to this machine, so native behaviour must be verified on the user's phone via a release, and JS logic must be fully unit-tested.
 
-## Suggested build order
+## Suggested build order (done 2026-10-18)
 
 1. Pure logic + tests: date/name parsers, `.ics`/`.vcf`/`.csv` parsers, three-way merge, WhatsApp link builder.
 2. File import + intent filters (works on web too) and Quick add.

@@ -10,6 +10,8 @@ Birthday tracker PWA + Android app. No accounts, no servers — everything stays
 - **Share with friends** — one-time copy via link (data compressed into the URL hash, never hits a server) or `.jbday.json` file. Import previews new vs. already-saved and dedupes by name + date.
 - **Import from other apps** — calendar (`.ics`), contacts (`.vcf`) and spreadsheet (`.csv`) exports, via Share → Receive or Android "Share to / Open with"; preview shows new, already saved and skipped rows
 - **Quick add** — type many birthdays in a row (People → Quick add)
+- **Contacts (Android)** — pick which phone contacts to link; birthdays sync both ways on app open / "Sync now" (names stay separate, contacts are never created or deleted). Linked people show phone, email and address
+- **Send on WhatsApp** — opens the friend's chat with the greeting pre-filled when the linked contact has an international number
 - **Backup** — full export/restore (merge or replace)
 
 ## Dev
