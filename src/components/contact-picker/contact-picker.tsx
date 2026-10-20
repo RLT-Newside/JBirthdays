@@ -126,6 +126,17 @@ export function ContactPicker() {
       return next
     })
 
+  const allVisibleOn = visible.length > 0 && visible.every((c) => selected.has(c.lookupKey))
+  const toggleAll = () =>
+    setSelected((prev) => {
+      const next = new Set(prev)
+      for (const c of visible) {
+        if (allVisibleOn) next.delete(c.lookupKey)
+        else next.add(c.lookupKey)
+      }
+      return next
+    })
+
   const save = () => {
     for (const c of ticked) {
       if (linkedTo.has(c.lookupKey)) continue
@@ -198,6 +209,11 @@ export function ContactPicker() {
                   {label}
                 </button>
               ))}
+              {!single && visible.length > 0 && (
+                <button type="button" onClick={toggleAll} className="ml-auto px-3 py-1 text-xs text-brand">
+                  {allVisibleOn ? 'Clear all' : 'Select all'}
+                </button>
+              )}
             </div>
 
             {visible.length === 0 && <p className="text-sm text-white/40">No contacts here.</p>}
