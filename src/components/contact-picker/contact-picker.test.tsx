@@ -74,4 +74,26 @@ describe('ContactPicker', () => {
     expect(people.find((p) => p.name === 'Max Muster')).toMatchObject({ month: 3, day: 5 })
     expect(people.find((p) => p.name === 'Max Muster')?.contact?.lookupKey).toBe('km')
   })
+
+  it('selects and clears all visible contacts', async () => {
+    const user = userEvent.setup()
+    render(
+      <AppDataProvider>
+        <ContactsProvider api={api}>
+          <Opener />
+          <ContactPicker />
+        </ContactsProvider>
+      </AppDataProvider>,
+    )
+    const dialog = await screen.findByRole('dialog', { name: 'Choose contacts' })
+    await within(dialog).findByText('Zoe')
+
+    await user.click(within(dialog).getByRole('button', { name: 'Select all' }))
+    expect(within(dialog).getByRole('checkbox', { name: 'Lena Müller' })).toBeChecked()
+    expect(within(dialog).getByRole('checkbox', { name: 'Zoe' })).toBeChecked()
+    expect(within(dialog).getByRole('button', { name: 'Save 2' })).toBeEnabled()
+
+    await user.click(within(dialog).getByRole('button', { name: 'Clear all' }))
+    expect(within(dialog).getByRole('button', { name: 'Save 0' })).toBeInTheDocument()
+  })
 })
