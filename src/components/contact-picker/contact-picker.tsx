@@ -42,7 +42,7 @@ function typedBirthday(t?: Typed): Birthday | null {
 export function ContactPicker() {
   const { people, addPerson, contactPickerOpen, setContactPickerOpen, linkingPersonId, setLinkingPersonId } =
     useAppData()
-  const { api, link, unlink, syncNow } = useContacts()
+  const { api, link, syncNow } = useContacts()
   const single = linkingPersonId ? people.find((p) => p.id === linkingPersonId) : undefined
   const open = contactPickerOpen || !!single
 
@@ -60,7 +60,7 @@ export function ContactPicker() {
     return m
   }, [people])
 
-  // Reload only when the sheet opens (people/single are read once at that moment).
+  // Reload only when the sheet opens. Already-linked contacts are hidden; unlink via the person or Settings.
   useEffect(() => {
     if (!open || !api) return
     setLoad('loading')
@@ -68,7 +68,7 @@ export function ContactPicker() {
     setFilter(single ? 'all' : 'birthday')
     setTyped({})
     setKeep({})
-    setSelected(new Set(single ? [] : people.filter((p) => p.contact).map((p) => p.contact!.lookupKey)))
+    setSelected(new Set())
     let cancelled = false
     ;(async () => {
       try {
@@ -91,15 +91,14 @@ export function ContactPicker() {
     setLinkingPersonId(null)
   }
 
-  const matchFor = (c: ContactSummary): Person | undefined =>
-    single ?? (linkedTo.has(c.lookupKey) ? undefined : findPersonMatch(c, people))
+  const matchFor = (c: ContactSummary): Person | undefined => single ?? findPersonMatch(c, people)
 
   const q = normalizeName(query)
   const visible = contacts.filter(
     (c) =>
       (filter === 'all' || c.birthday || selected.has(c.lookupKey)) &&
       (!q || normalizeName(c.name).includes(q)) &&
-      (!single || !linkedTo.has(c.lookupKey)),
+      !linkedTo.has(c.lookupKey),
   )
 
   // What saving would do for one ticked contact, or null when it still needs input.
@@ -116,7 +115,7 @@ export function ContactPicker() {
   }
 
   const ticked = contacts.filter((c) => selected.has(c.lookupKey))
-  const ready = ticked.every((c) => linkedTo.has(c.lookupKey) || plan(c))
+  const ready = ticked.every((c) => plan(c))
 
   const toggle = (c: ContactSummary) =>
     setSelected((prev) => {
@@ -139,7 +138,6 @@ export function ContactPicker() {
 
   const save = () => {
     for (const c of ticked) {
-      if (linkedTo.has(c.lookupKey)) continue
       const p = plan(c)
       if (!p) continue
       if (p.person) link(p.person.id, c, p.birthday)
@@ -153,7 +151,6 @@ export function ContactPicker() {
           contact: buildContactLink(c, p.birthday),
         })
     }
-    if (!single) for (const [key, person] of linkedTo) if (!selected.has(key)) unlink(person.id)
     syncNow()
     close()
   }
@@ -220,10 +217,9 @@ export function ContactPicker() {
             <ul className="space-y-1">
               {visible.map((c) => {
                 const isOn = selected.has(c.lookupKey)
-                const linked = linkedTo.has(c.lookupKey)
-                const match = !linked && !single ? findPersonMatch(c, people) : undefined
+                const match = !single ? findPersonMatch(c, people) : undefined
                 const person = matchFor(c)
-                const conflict = isOn && !linked && person && c.birthday && !sameBirthday(person, c.birthday)
+                const conflict = isOn && person && c.birthday && !sameBirthday(person, c.birthday)
                 const t = typed[c.lookupKey] ?? { day: 0, month: 0, year: '' }
                 return (
                   <li key={c.lookupKey} className="rounded-xl px-2 py-1.5 hover:bg-white/[0.03]">
@@ -243,11 +239,10 @@ export function ContactPicker() {
                           {!c.writable && ' · read-only'}
                         </span>
                       </span>
-                      {linked && <span className="text-[10px] text-brand/80 shrink-0">Linked</span>}
                       {match && <span className="text-[10px] text-white/50 shrink-0">In JBirthdays</span>}
                     </label>
 
-                    {isOn && !linked && !person && !c.birthday && (
+                    {isOn && !person && !c.birthday && (
                       <div className="grid grid-cols-[1fr_1.4fr_1.2fr] gap-2 mt-2 pl-8">
                         <Select
                           aria-label={`Day for ${c.name}`}
