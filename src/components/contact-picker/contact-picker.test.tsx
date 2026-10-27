@@ -75,6 +75,26 @@ describe('ContactPicker', () => {
     expect(people.find((p) => p.name === 'Max Muster')?.contact?.lookupKey).toBe('km')
   })
 
+  it('hides already-linked contacts instead of pre-selecting them', async () => {
+    const lena: Person = {
+      ...stored()[0],
+      contact: { lookupKey: 'kl', synced: { month: 10, day: 24 }, syncedAt: 1 },
+    }
+    localStorage.setItem('bday_people', JSON.stringify([lena]))
+    render(
+      <AppDataProvider>
+        <ContactsProvider api={api}>
+          <Opener />
+          <ContactPicker />
+        </ContactsProvider>
+      </AppDataProvider>,
+    )
+    const dialog = await screen.findByRole('dialog', { name: 'Choose contacts' })
+    await within(dialog).findByText('Zoe')
+    expect(within(dialog).queryByText('Lena Müller')).toBeNull()
+    expect(within(dialog).getByRole('button', { name: 'Save 0' })).toBeInTheDocument()
+  })
+
   it('selects and clears all visible contacts', async () => {
     const user = userEvent.setup()
     render(
