@@ -56,7 +56,7 @@ const birthdayOf = (b: Birthday): Birthday => ({
 })
 
 /** Link for a person who keeps `chosen`; the base is the contact's current birthday so the next sync writes `chosen` if it differs. */
-export function buildContactLink(contact: ContactSummary, chosen: Birthday): ContactLink {
+function buildContactLink(contact: ContactSummary, chosen: Birthday): ContactLink {
   return {
     lookupKey: contact.lookupKey,
     contactId: contact.contactId,
@@ -64,6 +64,11 @@ export function buildContactLink(contact: ContactSummary, chosen: Birthday): Con
     syncedAt: Date.now(),
     ...(!contact.writable && { readOnly: true }),
   }
+}
+
+/** New person linked to `contact`, keeping `chosen` as their birthday. */
+export function contactDraft(contact: ContactSummary, chosen: Birthday): PersonDraft {
+  return { name: contact.name, ...birthdayOf(chosen), tagIds: [], contact: buildContactLink(contact, chosen) }
 }
 
 export function ContactsProvider({ children, api: injected }: { children: ReactNode; api?: ContactSyncApi | null }) {
