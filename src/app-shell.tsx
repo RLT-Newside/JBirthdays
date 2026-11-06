@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { BackupImportDialog } from './components/backup-import-dialog/backup-import-dialog'
 import { ContactPicker } from './components/contact-picker/contact-picker'
+import { ContactsPrompt } from './components/contacts-prompt/contacts-prompt'
 import { ErrorBoundary } from './components/error-boundary/error-boundary'
 import { ImportDialog } from './components/import-dialog/import-dialog'
 import { PersonDetailModal } from './components/person-detail-modal/person-detail-modal'
@@ -86,6 +87,7 @@ export function AppShell() {
       <PersonDetailModal />
       <PersonFormModal />
       <ContactPicker />
+      <ContactsPrompt onResult={flash} />
       <QuickAddModal onAdded={(n) => flash(`Added ${n} ${n === 1 ? 'birthday' : 'birthdays'} 🎉`)} />
       <ImportDialog
         pending={pendingImport}

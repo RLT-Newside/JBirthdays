@@ -2,7 +2,7 @@
 import { Search } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useAppData } from '../../context/app-data'
-import { buildContactLink, useContacts } from '../../context/contacts'
+import { contactDraft, useContacts } from '../../context/contacts'
 import type { Birthday, Person } from '../../types'
 import { daysInMonth, formatBirthday, monthName } from '../../utils/birthday'
 import { findPersonMatch, normalizeName } from '../../utils/contactMatch'
@@ -49,7 +49,7 @@ export function ContactPicker() {
   const [load, setLoad] = useState<Load>('loading')
   const [contacts, setContacts] = useState<ContactSummary[]>([])
   const [query, setQuery] = useState('')
-  const [filter, setFilter] = useState<Filter>('birthday')
+  const [filter, setFilter] = useState<Filter>('all')
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [typed, setTyped] = useState<Record<string, Typed>>({})
   const [keep, setKeep] = useState<Record<string, Keep>>({})
@@ -65,7 +65,7 @@ export function ContactPicker() {
     if (!open || !api) return
     setLoad('loading')
     setQuery('')
-    setFilter(single ? 'all' : 'birthday')
+    setFilter('all')
     setTyped({})
     setKeep({})
     setSelected(new Set())
@@ -141,15 +141,7 @@ export function ContactPicker() {
       const p = plan(c)
       if (!p) continue
       if (p.person) link(p.person.id, c, p.birthday)
-      else
-        addPerson({
-          name: c.name,
-          month: p.birthday.month,
-          day: p.birthday.day,
-          ...(p.birthday.year !== undefined && { year: p.birthday.year }),
-          tagIds: [],
-          contact: buildContactLink(c, p.birthday),
-        })
+      else addPerson(contactDraft(c, p.birthday))
     }
     syncNow()
     close()

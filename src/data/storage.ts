@@ -20,6 +20,8 @@ export const STORAGE_KEYS = {
   updateCached: 'bday_update_cached',
   // Hashed WhatsApp number choice per linked contact (device-only, excluded from backups).
   waChoice: 'bday_wa_choice',
+  // First-start "sync contacts with a birthday" prompt was answered (device-only, excluded from backups).
+  contactsPrompted: 'bday_contacts_prompted',
 } as const
 
 /** Keys that describe this install, not the user's data — never backed up. */
@@ -27,6 +29,7 @@ export const DEVICE_ONLY_KEYS: readonly string[] = [
   STORAGE_KEYS.updateLastCheck,
   STORAGE_KEYS.updateCached,
   STORAGE_KEYS.waChoice,
+  STORAGE_KEYS.contactsPrompted,
 ]
 
 export type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS]

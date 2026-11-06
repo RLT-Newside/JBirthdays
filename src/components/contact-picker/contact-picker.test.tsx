@@ -50,10 +50,9 @@ describe('ContactPicker', () => {
     )
     const dialog = await screen.findByRole('dialog', { name: 'Choose contacts' })
     await within(dialog).findByText('Zoe')
-    expect(within(dialog).queryByText('Max Muster')).toBeNull()
+    expect(within(dialog).getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true')
     expect(within(dialog).getByText('In JBirthdays')).toBeInTheDocument()
 
-    await user.click(within(dialog).getByRole('button', { name: 'All' }))
     await user.click(within(dialog).getByRole('checkbox', { name: 'Max Muster' }))
     expect(within(dialog).getByRole('button', { name: 'Save 1' })).toBeDisabled()
     await user.click(within(dialog).getByRole('combobox', { name: 'Day for Max Muster' }))
@@ -108,6 +107,8 @@ describe('ContactPicker', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Choose contacts' })
     await within(dialog).findByText('Zoe')
 
+    await user.click(within(dialog).getByRole('button', { name: 'Has birthday' }))
+    expect(within(dialog).queryByText('Max Muster')).toBeNull()
     await user.click(within(dialog).getByRole('button', { name: 'Select all' }))
     expect(within(dialog).getByRole('checkbox', { name: 'Lena Müller' })).toBeChecked()
     expect(within(dialog).getByRole('checkbox', { name: 'Zoe' })).toBeChecked()
